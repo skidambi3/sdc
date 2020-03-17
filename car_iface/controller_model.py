@@ -39,12 +39,11 @@ class Car_Interface():
         All except for the brake_weight should be positive.
         '''
         #Coefficients corresponding to the motion dynamics
-        self.rolling_bias = None
-        self.friction_constant = None
+        self.rolling_bias = 0.021590646500433908
+        self.friction_constant = 1.279321161930267
 
-        self.accelerator_weight = None
-        self.brake_weight = None
-        raise Exception("You forgot to input SystemID learned weights in the Controller Model")
+        self.accelerator_weight = 0.0
+        self.brake_weight = -0.041330643330523636
 
         '''
         If approximating the complex internal model we use a FCN
@@ -115,7 +114,18 @@ class Car_Interface():
             '''
 
             #CODE HERE (Delete exception too)
-            raise Exception("You forgot to fill Simple Acceleration Calcs in the Controller Model")
+
+            if (pedal == None):
+            	a.accel_amt = 0
+            	brake_amt = 0
+            elif (pedal == self.ACCELERATOR):
+            	b.accel_amt = amount
+            	brake_amt = 0
+            elif (pedal == self.BRAKE):
+            	c.accel_amt = 0
+            	brake_amt = amount
+            v = abs(self.velocity)
+            self.accel = [self.accelerator_weight * accel_amt + self.brake_weight * brake_amt] + [self.friction_constant * v + self.rolling_bias]
 
         elif (self.model == "complex"):
             '''
@@ -171,11 +181,9 @@ class Car_Interface():
         '''
         '''
         UNCOMMENT AND FILL IN (Delete exception too)
-
-        self.position +=
-        self.velocity +=
-        '''
-        raise Exception("You forgot to fill in pos/vel dynamics in the Controller Model")
+		'''
+        self.position += 0.5*self.accel*self.dt^2 + self.velocity*self.dt
+        self.velocity += self.accel*self.dt
 
         #These ensure that the velocity is never against the current gear setting.
         if (self.gear == self.FORWARD):
