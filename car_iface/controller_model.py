@@ -1,4 +1,5 @@
 import os
+from utils import nn
 
 class Car_Interface():
     '''
@@ -12,8 +13,6 @@ class Car_Interface():
             raise Exception(f"Illegal argument model can only be 'simple' or 'complex' not {model}")
 
         self.model = model
-        if (self.model == "complex"):
-            import sysid.nn as nn
 
         #Variables to keep track of the car's current state
         self.position = 0
@@ -34,16 +33,15 @@ class Car_Interface():
 
         '''
         PART OF WEEK 2 HW
-
         FILL IN ESTIMATED COEFFICIENTS BELOW (Delete exception too)
         All except for the brake_weight should be positive.
         '''
         #Coefficients corresponding to the motion dynamics
-        self.rolling_bias = 0.021590646500433908
-        self.friction_constant = 1.279321161930267
+        self.rolling_bias = 0.009929075478129247
+        self.friction_constant = 0.10974291535061839
 
-        self.accelerator_weight = 0.0
-        self.brake_weight = -0.041330643330523636
+        self.accelerator_weight = 0.10000558634381539
+        self.brake_weight = -0.2499897051771736
 
         '''
         If approximating the complex internal model we use a FCN
@@ -53,7 +51,7 @@ class Car_Interface():
         The model has 3 inputs (accelerator depression, brake depression, velocity)
         '''
         if (self.model == "complex"):
-            self.complex_accel_fcn = nn.fcn(model_name = os.path.join(self.sys_id_fp(), "complex_accel"), num_inputs = 3)
+            self.complex_accel_fcn = nn.fcn(model_name = self.complex_weights_fp(), num_inputs = 3)
 
         #Variables to keep track of time (seconds)
         self.T = 0
@@ -83,7 +81,6 @@ class Car_Interface():
         Specifically we model the acceleration as a linear combination
         of the accelerator depression, the brake depression, the velocity,
         and a constant
-
         For the "complex" internal model we make no assumptions of the
         interanl motion dynamics.  We approximate the dynamics with a learned
         neural network that models accelration as a function of the same inputs
@@ -95,13 +92,11 @@ class Car_Interface():
             PART OF WEEK 2 HW
                                  Part A                     Part B
             accel = [c_1 * accel_amt + c_2* brake_amt] + [c_3 * v + c_4]
-
             c_1: accelerator_weight
             c_2: brake_weight
             c_3: -friction_constant
             c_4: rolling_bias
             (Remember the self prefix for these parameters)
-
             Implementation instructions:
             PART A:
              a.accel_amt = 0, brake_amt = 0, if pedal is None
@@ -109,47 +104,53 @@ class Car_Interface():
              c.accel_amt = 0, brake_amt = amount, if pedal is self.BRAKE
             Part B:
              a.Use the absolute value of the current velocity for v.
-
             self.accel should be set to the sum of these components.
             '''
 
             #CODE HERE (Delete exception too)
+            if pedal is None:
+                accel_amt = 0
+                brake_amt = 0
+            elif pedal == self.ACCELERATOR:
+                accel_amt = amount
+                brake_amt = 0
+            else:
+                accel_amt = 0
+                brake_amt = amount
+            #is friction_constant supposed to have a negative sign in front?
+            partA = self.accelerator_weight * accel_amt + self.brake_weight * brake_amt
+            partB = -self.friction_constant * abs(self.velocity) + self.rolling_bias
+            self.accel = partA + partB
 
-            if (pedal == None):
-            	a.accel_amt = 0
-            	brake_amt = 0
-            elif (pedal == self.ACCELERATOR):
-            	b.accel_amt = amount
-            	brake_amt = 0
-            elif (pedal == self.BRAKE):
-            	c.accel_amt = 0
-            	brake_amt = amount
-            v = abs(self.velocity)
-            self.accel = [self.accelerator_weight * accel_amt + self.brake_weight * brake_amt] + [self.friction_constant * v + self.rolling_bias]
 
         elif (self.model == "complex"):
             '''
             PART OF WEEK 3 HW
-
             Here we will use our fully connected network to set self.accel.
-
             Your task below is formulate the input appropriately to provide
             to the fully connected network.
-
             Implementation Instructions:
             1a. Initialize model_inp as a list of length 3. (Done for you)
              b. The first value should be accel_amt (See above for desc. of accel_amt)
              c. The second value should be brake_amt. (See above for desc. of brake_amt)
              d. The third value should be the current velocity (No need for abs value)
             model_inp = [accel_amt, brake_amt, velocity]
-
             The ouptut is the predicted acceleration which should
             account for all internal dynamics.
             '''
             model_inp = [0, 0, 0]
 
-            #CODE HERE (Delete exception too)
-            raise Exception("You forgot to fill Complex Input Formulation in the Controller Model")
+            if pedal is None:
+                accel_amt = 0
+                brake_amt = 0
+            elif pedal == self.ACCELERATOR:
+                accel_amt = amount
+                brake_amt = 0
+            else:
+                accel_amt = 0
+                brake_amt = amount
+
+            model_inp = [accel_amt, brake_amt, self.velocity]
 
             self.accel = self.complex_accel_fcn.predict([model_inp])
 
@@ -172,18 +173,15 @@ class Car_Interface():
 
         '''
         PART OF WEEK 2 HW
-
         Assuming constant velocity and acceleration over a small interval of length
         self.dt. Fill in the below update equations for position and velocity.
-
         HINT: position update should have a linear term in velocity, and a quadratic
               term in acceleration.
         '''
-        '''
-        UNCOMMENT AND FILL IN (Delete exception too)
-		'''
-        self.position += 0.5*self.accel*self.dt^2 + self.velocity*self.dt
-        self.velocity += self.accel*self.dt
+        
+        self.position += (self.velocity * self.dt) + (.5 * self.accel * self.dt ** 2)
+        self.velocity += self.accel * self.dt
+        
 
         #These ensure that the velocity is never against the current gear setting.
         if (self.gear == self.FORWARD):
@@ -217,11 +215,11 @@ class Car_Interface():
     def steer_to(self, ang):
         self.steering_angle = max(-1, min(ang, 1))
 
-    def sys_id_fp(self):
-        import settings
-
+    '''
+    Crawls the working directory up to the top most folder for which
+    car_iface should be a child directory.  Adds the name of the file
+    to get the learned weights for the complex model.
+    '''
+    def complex_weights_fp(self):
         cur_dir = os.path.dirname(__file__)
-        internal_path = os.path.join(cur_dir, '../../internal_only/sysid/')
-        if settings.use_internal_if_available and os.path.exists(internal_path):
-            return internal_path
-        return os.path.join(os.path.dirname(__file__), '../sysid/')
+        return os.path.join(cur_dir, "complex_accel")
