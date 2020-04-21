@@ -76,14 +76,22 @@ class Braking_Distance_Estimator():
     function to efficiently calculate the brake amount that yields
     roughly the desired stopping distance given an initial velocity.
     '''
+<<<<<<< HEAD
     def simple_analytical_sd(initial_velocity, amt):
         x = ci.brake_weight * amt + ci.rolling_bias #is amt the same as Pa-brake
         f = ci.friction_constant #should this be negative
+=======
+    def simple_analytical_sd(self, initial_velocity, amt):
+        #CODE HERE: Paste corresponding code from Jupyter Notebook
+        x = self.brake_weight * amt + self.rolling_bias #is amt the same as Pa-brake
+        f = self.friction_constant #should this be negative
+>>>>>>> 35bedc4262d71a788c0a4a8abcff5ccdbeb045df
         v0 = initial_velocity #is this initial_velocity
         if 1-f*v0/x <= 0:
             return float('inf')
         return 1/f * (v0 + x/f * np.log(1-f*v0/x))
 
+<<<<<<< HEAD
     def simple_analytical_approx(inp, tol = 1e-5, min_amt = 0, max_amt = 1):
         mid_amt = (min_amt + max_amt) / 2
         if max_amt - min_amt >= 2 * tol:
@@ -93,6 +101,17 @@ class Braking_Distance_Estimator():
                 return simple_analytical_approx(inp, tol, min_amt, mid_amt)
         return mid_amt
 
+=======
+    def simple_analytical_approx(self, inp, tol = 1e-5, min_amt = 0, max_amt = 1):
+        #CODE HERE: Paste corresponding code from Jupyter Notebook
+        mid_amt = (min_amt + max_amt) / 2
+        if max_amt - min_amt >= 2 * tol:
+            if self.simple_analytical_sd(inp[0], mid_amt) > inp[1]:
+                return self.simple_analytical_approx(inp, tol, mid_amt, max_amt)
+            elif self.simple_analytical_sd(inp[0], mid_amt) < inp[1]:
+                return self.simple_analytical_approx(inp, tol, min_amt, mid_amt)
+        return mid_amt
+>>>>>>> 35bedc4262d71a788c0a4a8abcff5ccdbeb045df
     #File path to Braking Distance folder
     def bd_fp(self):
         import settings

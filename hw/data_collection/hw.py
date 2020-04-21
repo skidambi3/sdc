@@ -48,9 +48,15 @@ from gym_duckietown.envs import DuckietownEnv
 #               set it to False
 # !!! YOUR CODE HERE
 env = DuckietownEnv(
+<<<<<<< HEAD
     seed = args.seed
     map_name = args.map_name
     domain_rand = false)
+=======
+    seed= args.seed
+    map_name= args.map_name,
+    domain_rand= False)
+>>>>>>> 35bedc4262d71a788c0a4a8abcff5ccdbeb045df
 # !!! ==============
 
 
@@ -60,7 +66,7 @@ env = DuckietownEnv(
 # so PLEASE READ THIS CAREFFULLY!
 env.reset()
 env.mapmode = True
-mapimg = env.render_obs(top_down=True)
+mapimg = env.render_obs(env.mapmode)
 np.save(f'data/maps/{args.map_name}.npy', mapimg)
 env.mapmode = False
 
@@ -75,7 +81,11 @@ env.mapmode = False
 #
 # !!! YOUR CODE HERE
 for i in range(num-samples):
+<<<<<<< HEAD
   camera_view = env.render_obs(top_down=env.mapmode)
+=======
+  camera_view = env.render_obs(top_down=True)
+>>>>>>> 35bedc4262d71a788c0a4a8abcff5ccdbeb045df
   np.save(f'data/inputs/{i}.npy', camera_view)
 
   # The `env` variable has a boolean `semantic_mode` property that controls
@@ -84,10 +94,17 @@ for i in range(num-samples):
   # Setting it to True will make the output segmented
   #
   # Turn it on *and off* when appropriate
+<<<<<<< HEAD
   semantic_mode= True
   segmentation_view = env.render_obs(env.semantic_mode)
   np.save(f'data/labels/{i}.npy', segmentation_view)
   semantic_mode = False
+=======
+  env.semantic_mode = True
+  segmentation_view = env.render_obs(env.semantic_mode)
+  np.save(f'data/labels/{i}.npy', segmentation_view)
+  env.semantic_mode = False
+>>>>>>> 35bedc4262d71a788c0a4a8abcff5ccdbeb045df
 
   # You must use the --debug option here
   if args.debug:
