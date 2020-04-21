@@ -48,9 +48,9 @@ from gym_duckietown.envs import DuckietownEnv
 #               set it to False
 # !!! YOUR CODE HERE
 env = DuckietownEnv(
-    seed=_,
-    map_name=_,
-    domain_rand=_)
+    seed = args.seed
+    map_name = args.map_name
+    domain_rand = false)
 # !!! ==============
 
 
@@ -69,13 +69,13 @@ env.mapmode = False
 # Now, using a for-loop, take N samples of the raw camera view and the
 # ground-truth semantic segmentation outputs from the simulator
 #
-# Loo at the code for taking the map image for guidance
+# Look at the code for taking the map image for guidance
 #
 # You must use the --num-samples option to control the number of samples taken
 #
 # !!! YOUR CODE HERE
-for i in range(_):
-  camera_view = _
+for i in range(num-samples):
+  camera_view = env.render_obs(top_down=env.mapmode)
   np.save(f'data/inputs/{i}.npy', camera_view)
 
   # The `env` variable has a boolean `semantic_mode` property that controls
@@ -84,10 +84,10 @@ for i in range(_):
   # Setting it to True will make the output segmented
   #
   # Turn it on *and off* when appropriate
-  _ = True
-  segmentation_view = _
+  semantic_mode= True
+  segmentation_view = env.render_obs(env.semantic_mode)
   np.save(f'data/labels/{i}.npy', segmentation_view)
-  _ = False
+  semantic_mode = False
 
   # You must use the --debug option here
   if args.debug:
