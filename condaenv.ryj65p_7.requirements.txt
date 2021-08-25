@@ -10,5 +10,5 @@ torch==1.4.0
 torchvision
 jupyter
 numpy==1.18.0
-tensorflow==2.1
+tensorflow==2.5.1
 git+http://github.com/brandontrabucco/diffopt.git
