@@ -1,6 +1,6 @@
 gym==0.15.4
 pyglet==1.4.10
-opencv-python==4.1.2.30
+opencv-python==4.2.0.32
 scikit-image==0.16.2
 dataclasses==0.6
 pygeometry==1.5.6
